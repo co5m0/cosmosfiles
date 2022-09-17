@@ -1,0 +1,18 @@
+font:
+  size: 9.8
+window:
+  decorations: none
+  startup_mode: Windowed
+shell:
+  program: /usr/bin/fish
+  args:
+    - -l
+    - -c
+    - "tmux"
+selection:
+  # This string contains all characters that are used as separators for
+  # "semantic words" in Alacritty.
+  semantic_escape_chars: ",│`|:\"' ()[]{}<>\t"
+  # When set to `true`, selected text will be copied to the primary clipboard.
+  save_to_clipboard: true
+
