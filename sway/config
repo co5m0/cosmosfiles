@@ -20,6 +20,7 @@
 # on the original workspace that the command was run on.
 # set $menu dmenu_path | dmenu | xargs swaymsg exec --
     set $menu exec ~/.config/rofi/launcher.sh
+    set $clipboard exec ~/.config/rofi/clipboard.sh
     set $power_menu exec ~/.config/rofi/powermenu.sh
     set $lock_bg ~/.wallpaper/lockscreen.jpg
 
@@ -110,6 +111,9 @@
     # Start your launcher
     bindsym $mod+d exec $menu
 
+    # Start your clipboard
+    bindsym $mod+Shift+c exec $clipboard
+
     # Start power menu
     bindsym $mod+Shift+p $power_menu
 
@@ -121,7 +125,7 @@
     floating_modifier $mod normal
 
     # Reload the configuration file
-    bindsym $mod+Shift+c reload
+    bindsym $mod+Shift+r reload
 
     # Exit sway (logs you out of your Wayland session)
     bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
@@ -254,6 +258,11 @@
     bindsym $mod+r mode "resize"
 
 #
+# Clipboad manager rofi
+#
+# bindsym $mod+Shift+c exec rofi -modi “clipboard:greenclip print” -show clipboard -run-command ‘{cmd}’
+
+#
 # Status Bar:
 #
 # Read `man 5 sway-bar` for more information about this section.
@@ -291,6 +300,7 @@
     for_window [app_id="webconsole"]                 floating enable
     for_window [app_id="Authy"]                      floating enable
     for_window [app_id="termfloat"]                  floating enable
+    for_window [app_id="com.github.hluk.copyq"]      floating enable
     for_window [app_id="termfloat"]                  resize set height 540
     for_window [app_id="termfloat"]                  resize set width 960
     for_window [app_id="mpv"]                        floating enable 
@@ -315,6 +325,9 @@
 
     exec_always --no-startup-id  mako &
     exec_always --no-startup-id /usr/bin/kdeconnect-indicator &
+    exec_always --no-startup-id /usr/bin/blueman-applet &
+    # exec_always --no-startup-id /usr/bin/copyq &
+    exec_always --no-startup-id greenclip daemon
 
 
 #
