@@ -31,7 +31,7 @@ au FocusGained,BufEnter * checktime
 
 " With a map leader it's possible to do extra key combinations
 " like <leader>w saves the current file
-"let mapleader = ","
+let mapleader = " "
 
 " Fast saving
 "nmap <leader>w :w!<cr>
@@ -356,19 +356,27 @@ call plug#begin('~/.config/nvim/plugged')
 "Autoclose
 Plug 'chun-yang/auto-pairs'
 
-"LSP
+" LSP
 Plug 'neovim/nvim-lsp'
 Plug 'neovim/nvim-lspconfig'
+
+" Improve nvim api
+Plug 'folke/neodev.nvim'
 
 " File system
 Plug 'preservim/nerdtree'
 
 "Autocompletition
-Plug 'hrsh7th/nvim-compe' 
-Plug 'hrsh7th/vim-vsnip'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/nvim-cmp'
+
+" For luasnip users.
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
 
 " Autocomment
-Plug 'terrortylor/nvim-comment'
+Plug 'numToStr/Comment.nvim' 
+" Plug 'terrortylor/nvim-comment'
 
 " Dracula colorscheme
 Plug 'dracula/vim', { 'as': 'dracula' }
@@ -380,6 +388,10 @@ Plug 'catppuccin/nvim', {'as': 'catppuccin'}
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
+" Treesitter
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/nvim-treesitter-textobjects'
+
 
 " Initialize plugin system
 call plug#end()
@@ -388,7 +400,8 @@ colorscheme catppuccin
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => LSP languages conf
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-lua require("lsp-config") 
+" lua require("lsp-config") 
+lua require("init") 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Custom setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -400,20 +413,22 @@ set ts=4 sw=4
 
 map ; :
 nmap <F6> :NERDTreeToggle %<CR>
-nmap <C-\> :NERDTreeToggle<CR>
+nmap <C-\> :NERDTreeToggle %<CR>
 nmap <C-s> :w %<CR>
-nmap <C-_> :CommentToggle<CR>
-vmap <C-_> :'<,'>CommentToggle<CR>
+" nmap <C-_> :CommentToggle<CR>
+" vmap <C-_> :'<,'>CommentToggle<CR>
 
 silent! !git rev-parse --is-inside-work-tree
 if v:shell_error == 0
   noremap <C-p> :GFiles --cached --others --exclude-standard<CR>
   noremap <C-o> :GFiles?<CR>
 else
-  noremap <C-p> :Files<CR>
+  noremap <C-p> :Files %:p:h<CR>
 endif
 
 nnoremap <C-g> :Rg<Cr>
 nnoremap <C-o> :Buffers<CR>
 
 vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>
+
+autocmd FileType terraform setlocal ts=2 sts=2 sw=2 smarttab
