@@ -9,7 +9,7 @@
   ],
   "modules-right": [
     "temperature",
-    "pulseaudio",
+    "wireplumber",
     "memory",
     "cpu",
     "network",
@@ -32,18 +32,16 @@
     },
     "tooltip": false
   },
-  "pulseaudio": {
-    "scroll-step": 1,
-    "format": "{icon} {volume}%", 
+  "wireplumber": {
+    "format": "{volume} {icon}",
     "format-muted": "婢 Muted",
-    "format-icons": {
-      "default": ["", "", ""]
-    },
+    "max-volume": 100,
+    "scroll-step": 1,
+    "format-icons": ["", "", ""],
     "states": {
       "warning": 85,
     },
-    "scroll-step": 1,
-    "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "tooltip": false,
   },
   "clock": {
