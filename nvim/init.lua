@@ -684,6 +684,24 @@ local function project_files()
     end
 end
 
+function vim.getVisualSelection()
+	vim.cmd('noau normal! "vy"')
+	local text = vim.fn.getreg('v')
+	vim.fn.setreg('v', {})
+
+	text = string.gsub(text, "\n", "")
+	if #text > 0 then
+		return text
+	else
+		return ''
+	end
+end
+
+vim.keymap.set('n', '<C-f>', ':Telescope current_buffer_fuzzy_find<cr>', opts)
+vim.keymap.set('v', '<C-f>', function()
+	local text = vim.getVisualSelection()
+	require('telescope.builtin').current_buffer_fuzzy_find({ default_text = text })
+end, opts)
 
 -- vim.keymap.set('n', '<leader>s/', telescope_live_grep_open_files, { desc = '[S]earch [/] in Open Files' })
 -- vim.kfymap.set('n', '<leader>pv', search_file_with_telescope , { desc = '[S]earch Files' })
