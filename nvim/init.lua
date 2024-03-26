@@ -173,6 +173,21 @@ map('n', '<C-s>', ':w %<CR>', options)
 -- Remap VIM 0 to first non-blank character
 map('', '0', '^', {})
 
+-- search selected text in the current buffer using //
+vim.api.nvim_exec(
+  [[
+  function! g:VSetSearch(cmdtype)
+    let temp = @s
+    norm! gv"sy
+    let @/ = '\V' . substitute(escape(@s, a:cmdtype.'\'), '\n', '\\n', 'g')
+    let @s = temp
+  endfunction
+
+  xnoremap // :<C-u>call g:VSetSearch('/')<CR>/<C-R>=@/<CR><CR>
+]],
+  false
+)
+
 -- Move a line of text using ALT+[jk] or Command+[jk] on mac
 -- Move lines up/down
 map("n", "<leader>j", "mz:m+<cr>`z", cmd_options)
