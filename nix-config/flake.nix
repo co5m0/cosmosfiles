@@ -1,46 +1,46 @@
 {
-  description = "NixOS systems and tools by mitchellh";
+  description = "A Nix Flake setup to configure system and services";
 
   inputs = {
-    # Pin our primary nixpkgs repository. This is the main nixpkgs repository
-    # we'll use for our configurations. Be very careful changing this because
-    # it'll impact your entire system.
-    # nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
-
-    # We use the unstable nixpkgs repo for some packages.
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; # Choose a proper channel
     home-manager = {
-      url = "github:nix-community/home-manager/release-22.11";
-
-      # We want home-manager to use the same set of nixpkgs as our system.
+      url =
+        "github:nix-community/home-manager/master"; # Add home-manager input
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs: let
-  in {
-    nixosConfigurations = {
+  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
+    let
 
-      nixos = inputs.nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        modules = [
-        ./system.nix
-	    ./user.nix
+      system = "aarch64-linux"; # Specify system architecture
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+    in {
 
+      formatter.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.nixfmt;
+      nixosConfigurations = {
+        nixos = nixpkgs.lib.nixosSystem {
+          inherit system;
 
-	    home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.co5mo = import ./home-manager.nix;
+          modules = [
+            ./configuration.nix # Include the main NixOS configuration
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.extraSpecialArgs = { inherit pkgs; };
+              home-manager.users.marioconsalvo = import ./home-manager.nix;
 
-            # Optionally, use home-manager.extraSpecialArgs to pass
-            # arguments to home.nix
-          }
-        ];
-        specialArgs = { inherit inputs; };
+              # Optionally, use home-manager.extraSpecialArgs to pass
+              # arguments to home.nix
+            }
+          ];
+        };
       };
     };
-  };
 }
+
