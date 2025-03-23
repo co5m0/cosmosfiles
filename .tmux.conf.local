@@ -82,6 +82,7 @@ tmux_conf_theme_colour_14="#6E6C7E"   # dark gray
 tmux_conf_theme_colour_15="#B7E5E6"   # dark gray
 tmux_conf_theme_colour_16="#E38C8F"   # red
 tmux_conf_theme_colour_17="#DFDEF1"   # white
+tmux_conf_theme_colour_18="#000000"   # black
 
 # default theme (ansi)
 #tmux_conf_theme_colour_1="colour0"
@@ -112,7 +113,7 @@ tmux_conf_theme_window_bg="default"
 tmux_conf_theme_highlight_focused_pane=false
 
 # focused pane colours:
-tmux_conf_theme_focused_pane_bg="$tmux_conf_theme_colour_2"
+tmux_conf_theme_focused_pane_bg="$tmux_conf_theme_colour_18"
 
 # pane border style, possible values are:
 #   - thin (default)
@@ -369,6 +370,8 @@ set -g status-position bottom
 set -s escape-time 8                     # faster command sequences
 set -sg repeat-time 300                   # increase repeat timeout
 
+set -ga terminal-overrides ",xterm-256color:Tc"
+
 
 # -- tpm -----------------------------------------------------------------------
 
@@ -396,12 +399,30 @@ tmux_conf_update_plugins_on_reload=true
 # visit https://github.com/tmux-plugins for available plugins
 #set -g @plugin 'tmux-plugins/tmux-copycat'
 #set -g @plugin 'tmux-plugins/tmux-cpu'
-#set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
 #set -g @plugin 'tmux-plugins/tmux-continuum'
 #set -g @continuum-restore 'on'
 
 
 # -- custom variables ----------------------------------------------------------
+
+# Expand bottom pane up
+bind Up  resize-pane -t 1 -y 20
+# Expand top pane down
+bind Down  resize-pane -t 1 -y 80
+# Expand right pane left
+bind Left  resize-pane -t 1 -x 20
+# Expand left pane right
+bind Right  resize-pane -t 1 -x 180
+
+# Reset split horizontal
+bind S-Left  select-layout even-horizontal
+bind S-Right select-layout even-horizontal
+
+# Reset split vertical
+bind S-Up select-layout even-vertical
+bind S-Down select-layout even-vertical
+
 
 # to define a custom #{foo} variable, define a POSIX shell function between the
 # '# EOF' and the '# "$@"' lines. Please note that the opening brace { character

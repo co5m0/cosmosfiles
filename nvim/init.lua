@@ -84,6 +84,18 @@ set.foldcolumn = 'auto'
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 set.hlsearch = true
 
+-- Disable swap file
+set.swapfile = false
+
+-- Folding code https://www.jackfranklin.co.uk/blog/code-folding-in-vim-neovim/
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldcolumn = "0"
+vim.opt.foldtext = ""
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 10
+vim.opt.foldnestmax = 4
+
 --------------------------------------------
 -- Colors and Fonts
 --------------------------------------------
@@ -300,6 +312,25 @@ end
 
 vim.opt.rtp:prepend(lazypath)
 
+-- local function isGitProject()
+--     local isGit = vim.fn.system("git rev-parse --is-inside-work-tree")
+--     if isGit == "true" then
+--         return true
+--     end
+--     return false
+-- end
+
+local project_root = {
+    function()
+        local dot_git_path = vim.fn.finddir(".git", ".;")
+        return vim.fn.fnamemodify(dot_git_path, ":h:t")
+    end,
+    icon = "",
+    cond = isGitProject,
+    separator = '',
+}
+
+
 -- [[ Configure plugins ]]
 -- NOTE: Here is where you install your plugins.
 --  You can configure plugins using the `config` key.
@@ -477,7 +508,7 @@ require('lazy').setup({
             -- require'lspconfig'.tsserver.setup{}
 
             local servers = {
-                -- tsserver = {},
+                -- ts_ls = {},
                 terraformls = {},
                 tflint = {},
                 gopls = {},
@@ -515,53 +546,26 @@ require('lazy').setup({
     { -- Typescript language plugin
         "pmizio/typescript-tools.nvim",
         requires = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-        config = function()
-            require("typescript-tools").setup({
-                settings = {
-                    -- spawn additional tsserver instance to calculate diagnostics on it
-                    separate_diagnostic_server = true,
-                    -- "change"|"insert_leave" determine when the client asks the server about diagnostic
-                    publish_diagnostic_on = "insert_leave",
-                    -- array of strings("fix_all"|"add_missing_imports"|"remove_unused"|
-                    -- "remove_unused_imports"|"organize_imports") -- or string "all"
-                    -- to include all supported code actions
-                    -- specify commands exposed as code_actions
-                    expose_as_code_action = {},
-                    -- string|nil - specify a custom path to `tsserver.js` file, if this is nil or file under path
-                    -- not exists then standard path resolution strategy is applied
-                    tsserver_path = nil,
-                    -- specify a list of plugins to load by tsserver, e.g., for support `styled-components`
-                    -- (see 💅 `styled-components` support section)
-                    tsserver_plugins = {},
-                    -- this value is passed to: https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-                    -- memory limit in megabytes or "auto"(basically no limit)
-                    tsserver_max_memory = "auto",
-                    -- described below
-                    tsserver_format_options = {},
-                    tsserver_file_preferences = {},
-                    -- locale of all tsserver messages, supported locales you can find here:
-                    -- https://github.com/microsoft/TypeScript/blob/3c221fc086be52b19801f6e8d82596d04607ede6/src/compiler/utilitiesPublic.ts#L620
-                    tsserver_locale = "en",
-                    -- mirror of VSCode's `typescript.suggest.completeFunctionCalls`
-                    complete_function_calls = false,
-                    include_completions_with_insert_text = true,
-                    -- CodeLens
-                    -- WARNING: Experimental feature also in VSCode, because it might hit performance of server.
-                    -- possible values: ("off"|"all"|"implementations_only"|"references_only")
-                    code_lens = "off",
-                    -- by default code lenses are displayed on all referencable values and for some of you it can
-                    -- be too much this option reduce count of them by removing member references from lenses
-                    disable_member_code_lens = true,
-                    -- JSXCloseTag
-                    -- WARNING: it is disabled by default (maybe you configuration or distro already uses nvim-ts-autotag,
-                    -- that maybe have a conflict if enable this feature. )
-                    jsx_close_tag = {
-                        enable = false,
-                        filetypes = { "javascriptreact", "typescriptreact" },
-                    },
+        opts = {
+            filetypes = {
+                "javascript",
+                "typescript",
+            },
+            settings = {
+                tsserver_max_memory = 6144,
+                tsserver_file_preferences = {
+                    "javascript",
+                    "javascript.jsx",
+                    "typescript",
+                    "typescript.tsx",
+                    includeInlayParameterNameHints = "all",
+                    includeCompletionsForModuleExports = true,
+                    quotePreference = "auto",
                 },
-            })
-        end,
+                tsserver_preferences = {},
+                expose_as_code_action = "all",
+            },
+        }
     },
 
     {
@@ -677,11 +681,31 @@ require('lazy').setup({
         -- See `:help lualine.txt`
         opts = {
             options = {
-                icons_enabled = false,
+                icons_enabled = true,
                 theme = 'palenight',
+                globalstatus = true,
                 -- section_separators = '',
             },
-        },
+            sections = {
+                lualine_a = { 'mode' },
+                lualine_b = { 'branch', 'diff', 'diagnostics' },
+                lualine_c = {
+                    project_root,
+                    {
+                        'filename',
+                        path = 4,
+                        -- 0: Just the filename
+                        -- 1: Relative path
+                        -- 2: Absolute path
+                        -- 3: Absolute path, with tilde as the home directory
+                        -- 4: Filename and parent dir, with tilde as the home directory
+                    }
+                },
+                lualine_x = { 'encoding', 'fileformat', 'filetype' },
+                lualine_y = { 'progress' },
+                lualine_z = { 'location' }
+            },
+        }
     },
 
     {
@@ -1081,6 +1105,7 @@ end, options)
 
 vim.keymap.set('n', '<C-[>', require('telescope.builtin').builtin, { desc = '[S]earch [S]elect Telescope' })
 vim.keymap.set('n', '<C-p>', project_files, { desc = 'Search [G]it [F]iles' })
+vim.keymap.set('n', '<C-F>', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
 -- vim.keymap.set('n', '<C-F>', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rsp' })
 vim.keymap.set('n', '<C-o>', require('telescope.builtin').buffers, { desc = '[o]pened buffers' })
 -- vim.keymap.set('n', '<leader>s/', telescope_live_grep_open_files, { desc = '[S]earch [/] in Open Files' })
@@ -1088,6 +1113,5 @@ vim.keymap.set('n', '<C-o>', require('telescope.builtin').buffers, { desc = '[o]
 -- vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 -- vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
 -- vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
--- vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
 -- vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 -- vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
