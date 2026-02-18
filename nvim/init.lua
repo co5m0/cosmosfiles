@@ -1,3 +1,8 @@
+-- Enabled vim.loader.enable() at startup. This compiles Lua to bytecode, significantly improving startup time
+if vim.loader then
+    vim.loader.enable()
+end
+
 -- Set <space> as the leader key
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -86,7 +91,7 @@ map("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]iagnostic m
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
 map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
 
--- Search selected text
+-- Search selected text (Lua replacement for the old Vimscript function)
 map("x", "//", function()
     vim.cmd('noau normal! "vy"')
     local text = vim.fn.getreg("v")
@@ -144,7 +149,7 @@ vim.filetype.add({
 -- Lazy Plugin Manager
 --------------------------------------------
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
     vim.fn.system({
         "git",
         "clone",
@@ -226,7 +231,7 @@ require("lazy").setup({
                 },
             })
             require("mini.pairs").setup()
-            require("mini.comment").setup()
+            -- Native commenting (gc) is available in Neovim 0.10+
         end,
     },
 
@@ -253,7 +258,7 @@ require("lazy").setup({
         opts = {},
     },
 
-    -- UI: Tabline
+    -- UI: Tabline (Kept per preference)
     {
         "crispgm/nvim-tabline",
         config = function()
@@ -319,7 +324,6 @@ require("lazy").setup({
     -- Telescope
     {
         "nvim-telescope/telescope.nvim",
-        tag = "0.1.6",
         dependencies = {
             { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
         },
@@ -344,38 +348,10 @@ require("lazy").setup({
             end)
             vim.keymap.set("n", "<C-o>", builtin.buffers, { desc = "Open Buffers" })
             vim.keymap.set("n", "<C-F>", function()
-                -- telescope live_grep in git root
-                -- function to find the git root directory based on the current buffer's path
-                local function find_git_root()
-                    -- use the current buffer's path as the starting point for the git search
-                    local current_file = vim.api.nvim_buf_get_name(0)
-                    local current_dir
-                    local cwd = vim.fn.getcwd()
-                    -- if the buffer is not associated with a file, return nil
-                    if current_file == "" then
-                        current_dir = cwd
-                    else
-                        -- extract the directory from the current file's path
-                        current_dir = vim.fn.fnamemodify(current_file, ":h")
-                    end
-
-                    -- find the git root directory from the current file's path
-                    local git_root = vim.fn.systemlist(
-                        "git -c " .. vim.fn.escape(current_dir, " ") .. " rev-parse --show-toplevel"
-                    )[1]
-                    if vim.v.shell_error ~= 0 then
-                        print("not a git repository. searching on current working directory")
-                        return cwd
-                    end
-                    return git_root
-                end
-
-                -- custom live_grep function to search in git root
-                local git_root = find_git_root()
-                builtin.live_grep({
-                    search_dirs = { git_root },
-                })
-            end, { desc = "[S]earch Files" })
+                -- telescope live_grep in git root (Optimized with vim.fs.root)
+                local root = vim.fs.root(0, ".git") or vim.uv.cwd()
+                builtin.live_grep({ cwd = root })
+            end, { desc = "[S]earch Files (Git Root)" })
 
             vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
             vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
@@ -472,7 +448,6 @@ require("lazy").setup({
         config = function()
             local capabilities = vim.lsp.protocol.make_client_capabilities()
             capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
-            local lspconfig = require("lspconfig")
 
             -- Define servers and settings
             -- NOTE: Ensure these servers are installed via Nix/system!
@@ -481,10 +456,35 @@ require("lazy").setup({
                 tflint = {},
                 gopls = {},
                 rust_analyzer = {},
+                zls = {},
                 lua_ls = {
                     settings = {
                         Lua = {
                             completion = { callSnippet = "Replace" },
+                        },
+                    },
+                },
+                nil_ls = {},
+                nixd = {
+                    cmd = { "nixd" },
+                    settings = {
+                        nixd = {
+                            nixpkgs = {
+                                expr = "import <nixpkgs> { }",
+                            },
+                            formatting = {
+                                command = { "nixfmt" },
+                            },
+                            options = {
+                                nixos = {
+                                    expr =
+                                    '(builtins.getFlake ("git+file://" + toString ./.)).nixosConfigurations.k-on.options',
+                                },
+                                home_manager = {
+                                    expr =
+                                    '(builtins.getFlake ("git+file://" + toString ./.)).homeConfigurations."ruixi@k-on".options',
+                                },
+                            },
                         },
                     },
                 },
@@ -517,6 +517,12 @@ require("lazy").setup({
                     map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
                     map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
                     map("<leader>ds", require("telescope.builtin").lsp_document_symbols, "[D]ocument [S]ymbols")
+                    -- Toggle Inlay Hints (0.10+)
+                    if vim.lsp.inlay_hint then
+                        map("<leader>th", function()
+                            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+                        end, "[T]oggle Inlay [H]ints")
+                    end
                 end,
             })
         end,
