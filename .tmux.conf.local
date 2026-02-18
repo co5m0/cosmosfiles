@@ -43,7 +43,7 @@ tmux_conf_new_session_prompt=false
 # RGB 24-bit colour support (tmux >= 2.2), possible values are:
 #  - true
 #  - false (default)
-tmux_conf_24b_colour=false
+tmux_conf_24b_colour=true
 
 # default theme
 # tmux_conf_theme_colour_1="#080808"    # dark gray
@@ -65,24 +65,24 @@ tmux_conf_24b_colour=false
 # tmux_conf_theme_colour_17="#e4e4e4"   # white
 
 
-tmux_conf_theme_colour_1="#6E6C7E"    # dark gray
-tmux_conf_theme_colour_2="#988BA2"    # gray
-tmux_conf_theme_colour_3="#C3BAC6"    # light gray
-tmux_conf_theme_colour_4="#92D2E8"    # light blue
-tmux_conf_theme_colour_5="#ECDDAA"    # yellow
-tmux_conf_theme_colour_6="#6E6C7E"    # dark gray
-tmux_conf_theme_colour_7="#DFDEF1"    # white
-tmux_conf_theme_colour_8="#6E6C7E"    # dark gray
-tmux_conf_theme_colour_9="#ECDDAA"    # yellow
-tmux_conf_theme_colour_10="#E5B4E2"   # pink
-tmux_conf_theme_colour_11="#B1E1A6"   # green
-tmux_conf_theme_colour_12="#8a8a8a"   # light gray
-tmux_conf_theme_colour_13="#E38C8F"   # white
-tmux_conf_theme_colour_14="#6E6C7E"   # dark gray
-tmux_conf_theme_colour_15="#B7E5E6"   # dark gray
-tmux_conf_theme_colour_16="#E38C8F"   # red
-tmux_conf_theme_colour_17="#DFDEF1"   # white
-tmux_conf_theme_colour_18="#000000"   # black
+tmux_conf_theme_colour_1="#363a4f"    # Surface 0
+tmux_conf_theme_colour_2="#494d64"    # Surface 1
+tmux_conf_theme_colour_3="#a5adcb"    # Subtext 0
+tmux_conf_theme_colour_4="#7dc4e4"    # Sapphire
+tmux_conf_theme_colour_5="#eed49f"    # Yellow
+tmux_conf_theme_colour_6="#363a4f"    # Surface 0
+tmux_conf_theme_colour_7="#cad3f5"    # Text
+tmux_conf_theme_colour_8="#363a4f"    # Surface 0
+tmux_conf_theme_colour_9="#eed49f"    # Yellow
+tmux_conf_theme_colour_10="#f5bde6"   # Pink
+tmux_conf_theme_colour_11="#a6da95"   # Green
+tmux_conf_theme_colour_12="#6e738d"   # Overlay 0
+tmux_conf_theme_colour_13="#ed8796"   # Red
+tmux_conf_theme_colour_14="#363a4f"   # Surface 0
+tmux_conf_theme_colour_15="#91d7e3"   # Sky
+tmux_conf_theme_colour_16="#ed8796"   # Red
+tmux_conf_theme_colour_17="#cad3f5"   # Text
+tmux_conf_theme_colour_18="#24273a"   # Base
 
 # default theme (ansi)
 #tmux_conf_theme_colour_1="colour0"
@@ -110,7 +110,7 @@ tmux_conf_theme_window_bg="default"
 # highlight focused pane (tmux >= 2.1), possible values are:
 #   - true
 #   - false (default)
-tmux_conf_theme_highlight_focused_pane=false
+tmux_conf_theme_highlight_focused_pane=true
 
 # focused pane colours:
 tmux_conf_theme_focused_pane_bg="$tmux_conf_theme_colour_18"
@@ -210,14 +210,14 @@ tmux_conf_theme_window_status_last_bg="$tmux_conf_theme_colour_2"
 tmux_conf_theme_window_status_last_attr="none"
 
 # status left/right sections separators
-tmux_conf_theme_left_separator_main=""
-tmux_conf_theme_left_separator_sub="|"
-tmux_conf_theme_right_separator_main=""
-tmux_conf_theme_right_separator_sub="|"
-#tmux_conf_theme_left_separator_main="\uE0B0"  # /!\ you don't need to install Powerline
-#tmux_conf_theme_left_separator_sub="\uE0B1"   #   you only need fonts patched with
-#tmux_conf_theme_right_separator_main="\uE0B2" #   Powerline symbols or the standalone
-#tmux_conf_theme_right_separator_sub="\uE0B3"  #   PowerlineSymbols.otf font, see README.md
+tmux_conf_theme_left_separator_main="\uE0B0"  # /!\ you don't need to install Powerline
+tmux_conf_theme_left_separator_sub="\uE0B1"   #   you only need fonts patched with
+tmux_conf_theme_right_separator_main="\uE0B2" #   Powerline symbols or the standalone
+tmux_conf_theme_right_separator_sub="\uE0B3"  #   PowerlineSymbols.otf font, see README.md
+#tmux_conf_theme_left_separator_main=""
+#tmux_conf_theme_left_separator_sub="|"
+#tmux_conf_theme_right_separator_main=""
+#tmux_conf_theme_right_separator_sub="|"
 
 # status left/right content:
 #   - separate main sections with "|"
@@ -250,7 +250,7 @@ tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d
 tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_bar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root} | #{hostname} "
 
 # status left style
-tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6,$tmux_conf_theme_colour_7,$tmux_conf_theme_colour_8"
+tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6,$tmux_conf_theme_colour_8,$tmux_conf_theme_colour_7"
 tmux_conf_theme_status_left_bg="$tmux_conf_theme_colour_9,$tmux_conf_theme_colour_10,$tmux_conf_theme_colour_11"
 tmux_conf_theme_status_left_attr="bold,none,none"
 
@@ -367,7 +367,7 @@ set -g mode-keys vi
 # move status line to top
 set -g status-position bottom
 
-set -s escape-time 8                     # faster command sequences
+set -s escape-time 0                     # faster command sequences
 set -sg repeat-time 300                   # increase repeat timeout
 
 set -ga terminal-overrides ",xterm-256color:Tc"
@@ -400,8 +400,9 @@ tmux_conf_update_plugins_on_reload=true
 #set -g @plugin 'tmux-plugins/tmux-copycat'
 #set -g @plugin 'tmux-plugins/tmux-cpu'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
-#set -g @plugin 'tmux-plugins/tmux-continuum'
-#set -g @continuum-restore 'on'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'tmux-plugins/tmux-yank'
+set -g @continuum-restore 'on'
 
 
 # -- custom variables ----------------------------------------------------------
@@ -423,6 +424,28 @@ bind S-Right select-layout even-horizontal
 bind S-Up select-layout even-vertical
 bind S-Down select-layout even-vertical
 
+# Smart pane switching with awareness of Vim splits.
+# See: https://github.com/christoomey/vim-tmux-navigator
+is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+    | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|l?n?vim?x?|fzf)(diff)?$'"
+bind-key -n 'C-h' if-shell "$is_vim" 'send-keys C-h'  'select-pane -L'
+bind-key -n 'C-j' if-shell "$is_vim" 'send-keys C-j'  'select-pane -D'
+bind-key -n 'C-k' if-shell "$is_vim" 'send-keys C-k'  'select-pane -U'
+bind-key -n 'C-l' if-shell "$is_vim" 'send-keys C-l'  'select-pane -R'
+tmux_version='$(tmux -V | sed -En "s/^tmux ([0-9]+(.[0-9]+)?).*/\1/p")'
+if-shell -b '[ "$(echo "$tmux_version < 3.0" | bc)" = 1 ]' \
+    "bind-key -n 'C-\\' if-shell \"$is_vim\" 'send-keys C-\\'  'select-pane -l'"
+if-shell -b '[ "$(echo "$tmux_version >= 3.0" | bc)" = 1 ]' \
+    "bind-key -n 'C-\\' if-shell \"$is_vim\" 'send-keys C-\\\\'  'select-pane -l'"
+
+bind-key -T copy-mode-vi 'C-h' select-pane -L
+bind-key -T copy-mode-vi 'C-j' select-pane -D
+bind-key -T copy-mode-vi 'C-k' select-pane -U
+bind-key -T copy-mode-vi 'C-l' select-pane -R
+bind-key -T copy-mode-vi 'C-\' select-pane -l
+
+# Used zsh installed with nix as default shell
+set-option -g default-shell ~/.nix-profile/bin/zsh
 
 # to define a custom #{foo} variable, define a POSIX shell function between the
 # '# EOF' and the '# "$@"' lines. Please note that the opening brace { character
