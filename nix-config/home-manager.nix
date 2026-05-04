@@ -1,31 +1,28 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  serena,
+  jail,
+  dagger,
+  ...
+}:
 
 let
-  # Define the custom pnpm package
-  latestPnpm = pkgs.stdenv.mkDerivation {
-    name = "pnpm";
-    version = "9.14.4";
-    src = pkgs.fetchurl {
-      url = "https://registry.npmjs.org/pnpm/-/pnpm-9.14.4.tgz";
-      sha512 =
-        "yBgLP75OS8oCyUI0cXiWtVKXQKbLrfGfp4JUJwQD6i8n1OHUagig9WyJtj3I6/0+5TMm2nICc3lOYgD88NGEqw==";
-    };
-    doCheck = true;
-    phases = [ "unpackPhase" "installPhase" ];
-    installPhase = ''
-      mkdir $out
-      cp -r * $out
-      mv $out/bin/pnpm.cjs $out/bin/pnpm
-      mv $out/bin/pnpx.cjs $out/bin/pnpx
-      chmod +x $out/bin/{pnpm,pnpx}
-    '';
-  };
-in {
+in
+{
+
+  imports = [ ./jail.nix ];
+
   # Home-manager 22.11 requires this be set. We never set it so we have
   # to use the old state version.
-  home.stateVersion = "22.11";
+  home.stateVersion = "25.05";
+  home.homeDirectory = "/home/co5mo";
+  home.username = "co5mo";
+
+  # programs.home-manager.enable = true;
 
   xdg.enable = true;
+  services.ssh-agent.enable = true;
 
   #---------------------------------------------------------------------
   # Packages
@@ -35,45 +32,56 @@ in {
   # per-project flakes sourced with direnv and nix-shell, so this is
   # not a huge list.
   home.packages = with pkgs; [
+    serena.packages.${pkgs.system}.serena
+    dagger.packages.${pkgs.system}.dagger
     neovim
     nnn
     bat
     fd
     fzf
-    htop
     jq
     yq
     ripgrep
-    gcc
-    gnumake
     tree
-    watch
-    perl
     tmux
     gh
     awscli2
-    terraform
-    terraform-ls
-    tflint
+    aws-vault
+    # terraform
+    # terraform-ls
+    # tflint
     ssm-session-manager-plugin
-    pre-commit
     lua-language-server
-    nodePackages.yaml-language-server
+    yaml-language-server
+    # nodePackages_latest.aws-cdk
     # nodejs-slim_20
-    nodePackages_latest.npm
+    # nodePackages_latest.npm
     # typescript-language-server
     typescript
-    # latestPnpm
-    pnpm
     go
     gopls
     lazygit
     nil
     pulumi-bin
-    python3
     kubectl
     k9s
+    kind
     delta
+    gemini-cli-bin
+    rust-analyzer
+    # zig
+    # zls
+    opencode
+    claude-code
+    corepack_24
+    lazysql
+    legcord
+    # nixd
+    nixfmt
+    uv
+    codex
+    yazi
+    rtk
   ];
 
   #---------------------------------------------------------------------
@@ -99,27 +107,41 @@ in {
     shellAliases = {
       ll = "ls -l";
       la = "ls -a";
-      update = "sudo nix flake update --flake $HOME/nix-config";
-      switch = "sodo mount -o remount,size=16G /tmp && sudo nixos-rebuild switch --flake $HOME/nix-config#nixos";
-      biomeln = "ln -srf $(git rev-parse --show-toplevel)/node_modules/.pnpm/@biomejs+cli-linux-arm64-musl@1.9.4/node_modules/@biomejs/cli-linux-arm64-musl/biome $(git rev-parse --show-toplevel)/node_modules/.bin/biome";
-      n = "nnn -dH";
+      update = "nix flake update --flake ~/.nix";
+      switch = "nix run nixpkgs#home-manager -- switch --flake ~/.nix#co5mo";
+      # biomeln = "ln -srf $(git rev-parse --show-toplevel)/node_modules/.pnpm/@biomejs+cli-linux-arm64-musl@1.9.4/node_modules/@biomejs/cli-linux-arm64-musl/biome $(git rev-parse --show-toplevel)/node_modules/.bin/biome";
+      # n = "nnn -dH";
       rless = "less -r";
       vim = "nvim";
       vi = "nvim";
       tf = "terraform";
       k = "kubectl";
+      lgit = "lazygit";
+      lsql = "lazysql";
+      ldocker = "lazydocker";
+      grep = "rg";
     };
+    dotDir = "${config.xdg.configHome}/zsh";
     sessionVariables = {
       EDITOR = "nvim";
-      # PATH = "$PATH:$HOME/.pulumi_bin";
       TERMINFO = "$HOME/.terminfo";
       TERM = "xterm-256color";
-      NNN_FCOLORS="D4DEB778E79F9F67D2E5E5D2";
+      NNN_FCOLORS = "D4DEB778E79F9F67D2E5E5D2";
     };
-    loginExtra = ''
-      tmux
+    # loginExtra = ''
+    #   case $- in *i*)
+    #     [ -z "$TMUX" ] && exec tmux
+    #   esac
+    # '';
+    initExtraFirst = ''
+      typeset -U path PATH
+      path=("$HOME/.local/share/flutter/bin" $path)
     '';
-    initExtra = ''
+    initContent = ''
+      if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
+        tmux attach-session -t default || tmux new-session -s default
+      fi
+
       DEFAULT_USER=$USER
       VI_MODE_RESET_PROMPT_ON_MODE_CHANGE=true
       MODE_INDICATOR="%F{white}N%f"
@@ -132,13 +154,21 @@ in {
       ch(){
           curl https://raw.githubusercontent.com/cheat/cheatsheets/refs/heads/master/$1
       }
+      function n() {
+          local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+          command yazi "$@" --cwd-file="$tmp"
+          IFS= read -r -d '\' cwd < "$tmp"
+          [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+          rm -f -- "$tmp"
+       }
     '';
     autosuggestion = {
       enable = true;
     };
     enableCompletion = true;
-    enableAutosuggestions = true;
-    history = { size = 10000; };
+    history = {
+      size = 10000;
+    };
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -149,14 +179,12 @@ in {
         "terraform"
         "gh"
         "vi-mode"
-        "jira"
         "fzf"
         "kubectl"
       ];
       theme = "agnoster";
       # envirment = { pathsToLink = [ "/share/zsh" ]; };
-      extraConfig =
-        "\n        PROMPT=\"$PROMPT\\$(vi_mode_prompt_info)\"\n\n        RPROMPT=\"\\$(vi_mode_prompt_info)$RPROMPT\"\n        ";
+      extraConfig = "\n        PROMPT=\"$PROMPT\\$(vi_mode_prompt_info)\"\n\n        RPROMPT=\"\\$(vi_mode_prompt_info)$RPROMPT\"\n        ";
     };
   };
 
@@ -165,8 +193,6 @@ in {
   #   enable = true;
   #   enableZshIntegration = true;
   # };
-
-  programs.gpg.enable = true;
 
   #programs.direnv= {
   #  enable = true;
@@ -183,4 +209,3 @@ in {
   #  };
   #};
 }
-
